@@ -12,10 +12,10 @@ return {
       start = vec3(1457.23, 1204.39, 113.0),
       rows = 3,
       cols = 3,
-      spacing = vec2(4.0, 4.0),
+      spacing = vec3(4.0, 4.0, 0.0),
 
       props = {
-        { model = `prop_tree_birch_03b`, heading = 0.0 }
+        { model = "prop_tree_birch_03b", heading = 0.0 }
       },
 
       prompt = 'Pick apples',

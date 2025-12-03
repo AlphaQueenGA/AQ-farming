@@ -1,47 +1,148 @@
-local spawnedEntities = {}
+local Props = {}
+local Animals = {}
+local Shops = {}
 
-local function loadModel(m)
-    local model = type(m) == 'string' and joaat(m) or m
-    RequestModel(model)
-    while not HasModelLoaded(model) do Wait(10) end
-    return model
+local function getEntityFromNet(id)
+    if not id then return nil end
+    return NetworkGetEntityFromNetworkId(id)
 end
 
-RegisterNetEvent('aq_farming:client:spawnZoneProps', function(zoneId, zoneData)
-    spawnedEntities[zoneId] = {}
-    for i, coords in ipairs(zoneData.coords or {}) do
-        local model = zoneData.propModels[((i - 1) % #zoneData.propModels) + 1]
-        local m = loadModel(model)
-        local obj = CreateObject(m, coords.x, coords.y, coords.z, true, true, false)
-        PlaceObjectOnGroundProperly(obj)
-        table.insert(spawnedEntities[zoneId], obj)
-    end
+-- Displays an ox_lib “Press [E]” style prompt
+local function canInteract(msg)
+    return lib.showTextUI(msg or "[E] Interact")
+end
+
+local function hideInteract()
+    lib.hideTextUI()
+end
+
+----------------------------------------------------------------
+-- REGISTERED ENTITIES FROM SERVER
+----------------------------------------------------------------
+
+RegisterNetEvent("aq_farming:client:registerProps", function(zoneId, netIds)
+    Props[zoneId] = netIds or {}
 end)
 
-RegisterNetEvent('aq_farming:client:spawnAnimals', function(animalZoneId, cfg)
-    spawnedEntities[animalZoneId] = {}
-    local m = loadModel(cfg.spawnModel or `a_c_cow`)
-    for _, coords in ipairs(cfg.coords or {}) do
-        local ped = CreatePed(4, m, coords.x, coords.y, coords.z, 0.0, true, true)
-        SetBlockingOfNonTemporaryEvents(ped, true)
-        table.insert(spawnedEntities[animalZoneId], ped)
-    end
+RegisterNetEvent("aq_farming:client:registerAnimals", function(zoneId, netIds)
+    Animals[zoneId] = netIds or {}
 end)
 
-RegisterNetEvent('aq_farming:client:spawnShopPed', function(shopId, shopData)
-    local m = loadModel(shopData.pedModel or `s_m_m_farmer_01`)
-    local ped = CreatePed(4, m, shopData.coords.x, shopData.coords.y, shopData.coords.z, shopData.heading or 0.0, true, true)
-    FreezeEntityPosition(ped, true)
-    SetEntityInvincible(ped, true)
-    SetBlockingOfNonTemporaryEvents(ped, true)
-    spawnedEntities[shopId] = { ped }
+RegisterNetEvent("aq_farming:client:registerShopPed", function(shopId, netId)
+    Shops[shopId] = netId
 end)
 
-RegisterNetEvent('aq_farming:client:cleanup', function()
-    for _, list in pairs(spawnedEntities) do
-        for _, ent in ipairs(list) do
-            if DoesEntityExist(ent) then DeleteEntity(ent) end
+RegisterNetEvent("aq_farming:client:cleanup", function()
+    Props = {}
+    Animals = {}
+    Shops = {}
+end)
+
+----------------------------------------------------------------
+-- INTERACTION LOOP
+-- Only checks distance to server-spawned entities
+----------------------------------------------------------------
+
+CreateThread(function()
+    local interacting = false
+
+    while true do
+        Wait(0)
+
+        local ped = PlayerPedId()
+        local pCoords = GetEntityCoords(ped)
+        local nearest, dist, typeId, id = nil, 4.0, nil, nil
+
+        ----------------------------------------------------------------
+        -- FIND NEAREST PROP
+        ----------------------------------------------------------------
+        for zoneId, list in pairs(Props) do
+            for _, netId in ipairs(list) do
+                local ent = getEntityFromNet(netId)
+                if ent and DoesEntityExist(ent) then
+                    local coords = GetEntityCoords(ent)
+                    local d = #(pCoords - coords)
+
+                    if d < dist then
+                        dist = d
+                        nearest = ent
+                        typeId = "prop"
+                        id = zoneId
+                    end
+                end
+            end
         end
+
+        ----------------------------------------------------------------
+        -- FIND NEAREST ANIMAL
+        ----------------------------------------------------------------
+        for zoneId, list in pairs(Animals) do
+            for _, netId in ipairs(list) do
+                local ent = getEntityFromNet(netId)
+                if ent and DoesEntityExist(ent) then
+                    local coords = GetEntityCoords(ent)
+                    local d = #(pCoords - coords)
+
+                    if d < dist then
+                        dist = d
+                        nearest = ent
+                        typeId = "animal"
+                        id = zoneId
+                    end
+                end
+            end
+        end
+
+        ----------------------------------------------------------------
+        -- FIND NEAREST SHOP PED
+        ----------------------------------------------------------------
+        for shopId, netId in pairs(Shops) do
+            local ent = getEntityFromNet(netId)
+            if ent and DoesEntityExist(ent) then
+                local coords = GetEntityCoords(ent)
+                local d = #(pCoords - coords)
+
+                if d < dist then
+                    dist = d
+                    nearest = ent
+                    typeId = "shop"
+                    id = shopId
+                end
+            end
+        end
+
+        ----------------------------------------------------------------
+        -- IF NOTHING NEARBY
+        ----------------------------------------------------------------
+        if not nearest then
+            if interacting then
+                hideInteract()
+                interacting = false
+            end
+            goto continue
+        end
+
+        ----------------------------------------------------------------
+        -- DISPLAY INTERACTION UI
+        ----------------------------------------------------------------
+        if not interacting then
+            canInteract("[E] Interact")
+            interacting = true
+        end
+
+        ----------------------------------------------------------------
+        -- HANDLE KEY PRESS
+        ----------------------------------------------------------------
+        if IsControlJustPressed(0, 38) then
+            if typeId == "prop" then
+                TriggerServerEvent("aq_farming:server:harvestProp", id)
+            elseif typeId == "animal" then
+                TriggerServerEvent("aq_farming:server:interactAnimal", id)
+            elseif typeId == "shop" then
+                TriggerServerEvent("aq_farming:server:openShop", id)
+            end
+        end
+
+        ::continue::
     end
-    spawnedEntities = {}
 end)

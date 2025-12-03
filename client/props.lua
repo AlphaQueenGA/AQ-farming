@@ -1,5 +1,5 @@
-local spawnedProps = {}      -- [nodeKey] = { entity, model, heading, pos, locId }
-local spawnedByLoc = {}      -- [locId][nodeKey] = true (fast check)
+local spawnedProps = {}
+local spawnedByLoc = {}
 
 local function getGroundZ(pos)
     local z = pos.z
@@ -28,28 +28,25 @@ local function spawnLocalProp(model, pos, heading)
     return obj
 end
 
--- Apply authoritative state from server: state is [nodeKey] = info
 RegisterNetEvent('farming:client:applyPropState', function(state)
-    for nodeKey, info in pairs(state) do
-        if not spawnedProps[nodeKey] then
-            local obj = spawnLocalProp(info.model, info.pos, info.heading or 0.0)
-            spawnedProps[nodeKey] = { entity = obj, model = info.model, heading = info.heading, pos = info.pos, locId = info.locId }
-            spawnedByLoc[info.locId] = spawnedByLoc[info.locId] or {}
-            spawnedByLoc[info.locId][nodeKey] = true
-        end
+  -- spawn new
+  for nodeKey, info in pairs(state) do
+    if not spawnedProps[nodeKey] then
+      local obj = CreateObject(GetHashKey(info.model), info.pos.x, info.pos.y, info.pos.z, false, false, false)
+      SetEntityHeading(obj, info.heading or 0.0)
+      FreezeEntityPosition(obj, true)
+      spawnedProps[nodeKey] = { entity = obj, locId = info.locId }
     end
-    -- Delete extras
-    for nodeKey, entry in pairs(spawnedProps) do
-        if not state[nodeKey] then
-            local ent = entry.entity
-            if DoesEntityExist(ent) then DeleteEntity(ent) end
-            spawnedProps[nodeKey] = nil
-            if spawnedByLoc[entry.locId] then
-                spawnedByLoc[entry.locId][nodeKey] = nil
-            end
-        end
+  end
+  -- delete removed
+  for nodeKey, entry in pairs(spawnedProps) do
+    if not state[nodeKey] then
+      if DoesEntityExist(entry.entity) then DeleteEntity(entry.entity) end
+      spawnedProps[nodeKey] = nil
     end
+  end
 end)
+
 
 -- Delete by nodeKey (server sends a map {[nodeKey] = info} or single key)
 RegisterNetEvent('farming:client:deletePropByNodeKey', function(payload)

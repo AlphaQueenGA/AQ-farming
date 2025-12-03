@@ -1,37 +1,44 @@
-local loadedLocations = {}
-local loadedAnimals = AnimalConfig or {}
-local locationsInitialised = false
-local animalsInitialised = false
-local storesInitialised = false
+local INIT = {
+  locations = false,
+  animals = false,
+  stores = false,
+  props = false
+}
 
 CreateThread(function()
-    if Locations then
-        for _, cfg in ipairs(Locations) do
-            loadedLocations[cfg.id] = cfg
-        end
-    end
+  TriggerEvent('farming:client:bootstrap')
+end)
 
-    exports.ox_lib:registerContext({
-        id = 'farm_store_context',
-        title = 'Farm Store',
-        options = {
-            { title = 'Open Store', description = 'Sell farm goods', event = 'farming:client:openStore' }
-        }
-    })
+AddEventHandler('farming:client:bootstrap', function()
+  if not INIT.locations then
+    TriggerEvent('farming:client:initLocations', Locations)
+    INIT.locations = true
+  end
 
-    -- Only initialise once
-    if not locationsInitialised then
-        TriggerEvent('farming:client:initLocations', loadedLocations)
-        locationsInitialised = true
-    end
+  if not INIT.animals then
+    TriggerEvent('farming:client:initAnimals', AnimalConfig)
+    INIT.animals = true
+  end
 
-    if not animalsInitialised then
-        TriggerEvent('farming:client:initAnimals', loadedAnimals)
-        animalsInitialised = true
-    end
+  if not INIT.stores then
+    TriggerEvent('farming:client:initStores')
+    INIT.stores = true
+  end
+end)
 
-    if not storesInitialised then
-        TriggerEvent('farming:client:initStores')
-        storesInitialised = true
-    end
+AddEventHandler('onResourceStop', function(resourceName)
+  if resourceName ~= GetCurrentResourceName() then return end
+
+  -- props
+  for nodeKey, entry in pairs(spawnedProps or {}) do
+    if entry.entity and DoesEntityExist(entry.entity) then DeleteEntity(entry.entity) end
+  end
+  spawnedProps = {}
+
+  -- store peds & points
+  for storeId, data in pairs(storePoints or {}) do
+    if data.point and data.point.remove then data.point:remove() end
+    if data.ped and DoesEntityExist(data.ped) then DeleteEntity(data.ped) end
+  end
+  storePoints = {}
 end)

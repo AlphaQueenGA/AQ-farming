@@ -13,7 +13,6 @@ local function spawnLocalProp(model, pos, heading)
     return obj
 end
 
-
 -- Apply full state from server
 RegisterNetEvent('farming:client:applyPropState', function(state)
     -- spawn new props

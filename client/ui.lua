@@ -3,8 +3,7 @@ RegisterNUICallback('close', function(_, cb)
   cb(true)
 end)
 
-RegisterNUICallback('sellItems', function(data, cb)
-  -- data: { storeId, items: [{ item, qty }] }
-  TriggerServerEvent('farming:server:sellItems', data)
-  cb(true)
+RegisterNUICallback("sellItems", function(data, cb)
+    TriggerServerEvent("aq-farming:sellItems", data.storeId, data.items)
+    cb("ok")
 end)

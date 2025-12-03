@@ -1,26 +1,78 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Farm Store</title>
+  <title>Farmers Market</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app" class="hidden">
-    <div class="header">
-      <h1>🌾 Farm Store</h1>
-      <button id="close">×</button>
-    </div>
-
-    <div id="items" class="grid"></div>
-
-    <div class="footer">
-      <div class="summary">
-        <span id="totalLabel">Total: $0</span>
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">
+          <!-- Simple leaf logo (SVG inline for lightweight) -->
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path fill="#4caf50" d="M12 2c4 0 8 4 8 8 0 5.25-4.75 10-10 10S2 15.25 2 10C2 6 8 2 12 2z"/>
+            <path fill="#81c784" d="M7 10c3 0 7-3 7-6 0 4-2 10-7 10-2.5 0-3 .5-3 .5s.5-4.5 3-4.5z"/>
+          </svg>
+        </div>
+        <div class="title">
+          <span id="market-title">Farmers Market</span>
+          <small>Fresh • Local • Fair</small>
+        </div>
       </div>
-      <button id="sell">Sell Selected</button>
+
+      <div class="stats">
+        <div class="balance">
+          <span class="label">Balance</span>
+          <span class="value" id="player-balance">$0</span>
+        </div>
+        <div class="earnings">
+          <span class="label">Potential</span>
+          <span class="value" id="potential-earnings">$0</span>
+        </div>
+      </div>
+
+      <button id="close" class="close-btn" aria-label="Close">✖</button>
+    </header>
+
+    <!-- Filters -->
+    <nav class="filters">
+      <button class="filter active" data-category="all">All</button>
+      <button class="filter" data-category="crops">Crops</button>
+      <button class="filter" data-category="animal">Animal Products</button>
+      <button class="filter" data-category="herbs">Herbs</button>
+      <button class="filter" data-category="misc">Misc</button>
+    </nav>
+
+    <!-- Grid -->
+    <main class="grid" id="item-grid">
+      <!-- Cards injected by JS -->
+    </main>
+
+    <!-- Footer hint -->
+    <footer class="footer">
+      <span>Tip: Enter an amount, then press Sell. Large sales show a confirmation.</span>
+    </footer>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <h3>Confirm sale</h3>
+        <p id="confirm-text">Are you sure you want to sell 50x wheat for $500?</p>
+        <div class="modal-actions">
+          <button id="confirm-cancel" class="btn ghost">Cancel</button>
+          <button id="confirm-ok" class="btn primary">Confirm</button>
+        </div>
+      </div>
     </div>
+
+    <!-- Toast notifications -->
+    <div id="toast-container" class="toasts"></div>
   </div>
+
   <script src="app.js"></script>
 </body>
 </html>

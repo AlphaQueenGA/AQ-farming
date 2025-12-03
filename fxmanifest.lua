@@ -1,31 +1,39 @@
+-- fxmanifest.lua
 fx_version 'cerulean'
-game 'gta5'
+games { 'gta5' }
 
-lua54 'yes'
+name 'AQ-Farming'
+author 'AlphaQueen'
+description 'QBCore Farming Resource using ox_lib and qb-inventory.'
+version '1.0.0'
 
 dependencies {
-  'ox_lib',
-  'qb-inventory'
+    'qb-core',
+    'ox_lib',
+    'qb-inventory',
 }
 
 shared_scripts {
-  '@ox_lib/init.lua',
-  'config/*.lua',
-  'config/locations/*.lua',
+    '@ox_lib/init.lua',
+    'shared/*.lua',
+    'config/config.lua',
+    'config/animals.lua',
+    'config/locations/*.lua',
 }
 
 client_scripts {
-  'client/*.lua'
+    'client/*.lua'
 }
 
 server_scripts {
-  'server/*.lua'
+    '@qb-core/shared/locale.lua',
+    'server/*.lua'
 }
 
 ui_page 'html/index.html'
 
 files {
-  'html/index.html',
-  'html/style.css',
-  'html/app.js'
+    'html/index.html',
+    'html/style.css',
+    'html/app.js'
 }

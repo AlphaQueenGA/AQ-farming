@@ -9,7 +9,6 @@ local function makePropKey(pos, colId)
     return ('%s:%.2f:%.2f:%.2f'):format(colId, pos.x, pos.y, pos.z)
 end
 
--- [generateRadiusNodes, generateGridNodes, pointInPoly2D, generateFieldNodes remain the same]
 
 local function generateRadiusNodes(def)
     local res = {}

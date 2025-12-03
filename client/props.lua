@@ -5,11 +5,14 @@ local function spawnLocalProp(model, pos, heading)
     RequestModel(mhash)
     while not HasModelLoaded(mhash) do Wait(0) end
 
-    local obj = CreateObject(mhash, pos.x, pos.y, pos.z, false, false, false)
+    local obj = CreateObject(mhash, pos.x, pos.y, pos.z, true, true, false) -- networked
     SetEntityHeading(obj, heading or 0.0)
+    PlaceObjectOnGroundProperly(obj)
     FreezeEntityPosition(obj, true)
+    SetEntityAsMissionEntity(obj, true, true)
     return obj
 end
+
 
 -- Apply full state from server
 RegisterNetEvent('farming:client:applyPropState', function(state)

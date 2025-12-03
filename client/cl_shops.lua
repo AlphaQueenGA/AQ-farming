@@ -71,7 +71,7 @@ RegisterNetEvent('aq_farming:client:openShop', function(shopId)
 
     SendNUIMessage({
         action = 'open',
-        title = 'Farmers Market',
+        title = '🌾Straw Hat Ranch🌾',
         shopId = shopId,
         balance = balance,
         items = items

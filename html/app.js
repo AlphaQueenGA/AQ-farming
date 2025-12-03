@@ -226,7 +226,7 @@ window.addEventListener('message', (evt) => {
       count: it.count || 0
     }));
 
-    titleEl.textContent = data.title || 'Farmers Market';
+    titleEl.textContent = data.title || '🌾Straw Hat Ranch🌾';
     balanceEl.textContent = `$${state.balance}`;
     app.classList.remove('hidden');
 
@@ -242,7 +242,7 @@ window.addEventListener('message', (evt) => {
 /* Optional: local preview data for designing in a browser (commented by default) */
 const previewData = {
   action: 'open',
-  title: 'Farmers Market',
+  title: '🌾Straw Hat Ranch🌾',
   balance: 1280,
   shopId: 'farm_shop_01',
   items: [
